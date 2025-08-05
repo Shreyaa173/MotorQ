@@ -1,15 +1,5 @@
 # 🧳 Airport Luggage Storage System
-
-> **IGDTUW Batch of 2027 - Application Engineering Assignment**  
-> **Submission Deadline:** 07:00 PM IST  
-> **Problem Statement:** Airport Luggage Storage & Billing System  
-> **Developed by:** [Your Name] | Roll No: [Your Roll Number]  
-
 ---
-
-## 📽️ Demo Video
-
-🎥 **Watch the demo:** [Video Link Here](https://drive.google.com/your-demo-link)
 
 ---
 
@@ -32,7 +22,7 @@ Passengers do not interact with the system. All operations are staff-driven via 
 
 - **Frontend:** React.js
 - **Backend:** Node.js + Express.js
-- **Database:** MongoDB (or LocalStorage for mock data)
+- **Database:** LocalStorage 
 - **Styling & UI:** Tailwind CSS / CSS Modules
 - **Icons & UI Helpers:** Lucide React / React Hot Toast
 
@@ -100,45 +90,13 @@ cd ../frontend
 npm start
 ```
 
-> Ensure MongoDB is running if you are using database-backed version.  
-> Or, you can try the localStorage version for quick setup.
-
----
-
-## 📁 Folder Structure
-
-```bash
-/ (root)
-├── frontend/          # React app
-│   ├── components/
-│   ├── pages/
-│   └── ...
-├── backend/           # Express + Node.js server
-│   ├── models/
-│   ├── routes/
-│   └── ...
-├── README.md
-└── ...
-```
-
----
-
-## 📌 Notes
-
-- 📤 **Make sure your screen recording (demo video) clearly shows each core and bonus feature.**
-- 📎 Submit `.zip` of the project + Video link to:
-  ```
-  campus-hiring@motorq.co  
-  CC: rohit@motorq.com, vinoj@motorq.com
-  ```
-
 ---
 
 ## 🙋‍♂️ Author
 
-**Name:** [Your Name]  
-**Roll No:** [Your Roll Number]  
-**Email:** [Your College Email]
+**Name:** [Shreya Gupta]  
+**Roll No:** [18601012023]  
+**Email:** [shreya186btcse23@igdtuw.ac.in]
 
 ---
 
