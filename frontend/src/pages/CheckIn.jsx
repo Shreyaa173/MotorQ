@@ -42,16 +42,7 @@ const CheckIn = () => {
             </div>
 
             {/* Quick Stats */}
-            <div className="flex gap-4">
-              <div className="bg-white rounded-lg shadow p-4 text-center min-w-[100px]">
-                <div className="text-2xl font-bold text-blue-600">2</div>
-                <div className="text-sm text-gray-600">Today's Check-ins</div>
-              </div>
-              <div className="bg-white rounded-lg shadow p-4 text-center min-w-[100px]">
-                <div className="text-2xl font-bold text-green-600">30</div>
-                <div className="text-sm text-gray-600">Active Storage</div>
-              </div>
-            </div>
+            
           </div>
         </div>
 
@@ -173,42 +164,7 @@ const CheckIn = () => {
             </div>
 
             {/* Quick Actions */}
-            <div className="bg-white rounded-lg shadow-sm">
-              <div className="p-4 border-b border-gray-200">
-                <h3 className="text-lg font-medium text-gray-900">Quick Actions</h3>
-              </div>
-              <div className="p-4 space-y-3">
-                <button className="w-full flex items-center gap-3 p-3 text-left text-sm rounded-lg border border-gray-200 hover:bg-gray-50">
-                  <FileText size={18} className="text-gray-400" />
-                  Generate Report
-                </button>
-                <button className="w-full flex items-center gap-3 p-3 text-left text-sm rounded-lg border border-gray-200 hover:bg-gray-50">
-                  <Camera size={18} className="text-gray-400" />
-                  Take Photo
-                </button>
-              </div>
-            </div>
-
-            {/* Daily Summary */}
-            <div className="bg-white rounded-lg shadow-sm">
-              <div className="p-4 border-b border-gray-200">
-                <h3 className="text-lg font-medium text-gray-900">Today's Summary</h3>
-              </div>
-              <div className="p-4 space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Check-ins</span>
-                  <span className="text-sm font-medium text-green-600">+127</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Peak Hour</span>
-                  <span className="text-sm font-medium">2:00 PM</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Average Processing</span>
-                  <span className="text-sm font-medium">3.2 min</span>
-                </div>
-              </div>
-            </div>
+            
           </div>
         </div>
       </div>

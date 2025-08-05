@@ -1,367 +1,277 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, PackageOpen, User, Calendar, MapPin, Phone, Clock } from 'lucide-react';
+import { Search, Package, User, Phone, MapPin, Clock, Filter } from 'lucide-react';
 
-const LuggageSearch = ({ onResults, filterStatus, showSelectButton = false, onSelect }) => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchType, setSearchType] = useState('tagNumber');
+const LuggageSearch = ({ 
+  onResults, 
+  onSelect, 
+  filterStatus = null, 
+  showSelectButton = false 
+}) => {
+  const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState(filterStatus || 'all');
-  const [dateFilter, setDateFilter] = useState('all');
   const [results, setResults] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
-  // Mock data for demonstration
-  const mockLuggageData = [
-    {
-      tagNumber: 'LUG-001',
-      ownerName: 'Shreya Gupta',
-      ownerPhone: '+1234567890',
-      ownerEmail: 'john.doe@email.com',
-      checkInDate: '2024-01-15',
-      checkInTime: '10:30 AM',
-      checkOutDate: null,
-      checkOutTime: null,
-      storageLocation: 'A-15',
-      status: 'stored',
-      description: 'Large black suitcase with wheels',
-      fees: 300.00,
-      specialInstructions: 'Handle with care - fragile items',
-      weight: '23kg'
-    },
-    {
-      tagNumber: 'LUG-002',
-      ownerName: 'Shreya Gupta',
-      ownerPhone: '+1987654321',
-      ownerEmail: 'jane.smith@email.com',
-      checkInDate: '2024-01-14',
-      checkInTime: '2:15 PM',
-      checkOutDate: '2024-01-15',
-      checkOutTime: '11:45 AM',
-      storageLocation: 'B-08',
-      status: 'checked_out',
-      description: 'Medium blue backpack',
-      fees: 100.00,
-      specialInstructions: null,
-      weight: '8kg'
-    },
-    {
-      tagNumber: 'LUG-003',
-      ownerName: 'Shreya Gupta',
-      ownerPhone: '+1122334455',
-      ownerEmail: 'mike.johnson@email.com',
-      checkInDate: '2024-01-16',
-      checkInTime: '9:00 AM',
-      checkOutDate: null,
-      checkOutTime: null,
-      storageLocation: 'C-22',
-      status: 'stored',
-      description: 'Red travel bag',
-      fees: 200.00,
-      specialInstructions: 'Owner prefers morning pickup',
-      weight: '15kg'
-    },
-    {
-      tagNumber: 'LUG-004',
-      ownerName: 'Shreya Gupta',
-      ownerPhone: '+1555666777',
-      ownerEmail: 'sarah.wilson@email.com',
-      checkInDate: '2024-01-13',
-      checkInTime: '4:30 PM',
-      checkOutDate: null,
-      checkOutTime: null,
-      storageLocation: 'A-03',
-      status: 'overdue',
-      description: 'Small green duffel bag',
-      fees: 200.00,
-      specialInstructions: null,
-      weight: '12kg'
-    }
-  ];
-
-  const performSearch = () => {
-    setIsLoading(true);
-    
-    // Simulate API call delay
-    setTimeout(() => {
-      let filteredResults = mockLuggageData;
-
-      // Apply search query filter
-      if (searchQuery.trim()) {
-        filteredResults = filteredResults.filter(item => {
-          switch (searchType) {
-            case 'tagNumber':
-              return item.tagNumber.toLowerCase().includes(searchQuery.toLowerCase());
-            case 'ownerName':
-              return item.ownerName.toLowerCase().includes(searchQuery.toLowerCase());
-            case 'ownerPhone':
-              return item.ownerPhone.includes(searchQuery);
-            case 'ownerEmail':
-              return item.ownerEmail.toLowerCase().includes(searchQuery.toLowerCase());
-            default:
-              return true;
-          }
-        });
-      }
-
-      // Apply status filter
-      if (statusFilter !== 'all') {
-        filteredResults = filteredResults.filter(item => item.status === statusFilter);
-      }
-
-      // Apply date filter
-      if (dateFilter !== 'all') {
-        const today = new Date();
-        const itemDate = new Date(filteredResults.checkInDate);
-        
-        switch (dateFilter) {
-          case 'today':
-            filteredResults = filteredResults.filter(item => {
-              const checkInDate = new Date(item.checkInDate);
-              return checkInDate.toDateString() === today.toDateString();
-            });
-            break;
-          case 'week':
-            const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-            filteredResults = filteredResults.filter(item => {
-              const checkInDate = new Date(item.checkInDate);
-              return checkInDate >= weekAgo;
-            });
-            break;
-          case 'month':
-            const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
-            filteredResults = filteredResults.filter(item => {
-              const checkInDate = new Date(item.checkInDate);
-              return checkInDate >= monthAgo;
-            });
-            break;
+  // Load luggage data from storage
+  const loadLuggageData = () => {
+    try {
+      // Try to get from window.luggageStorage first (in-memory)
+      let luggageData = window.luggageStorage || [];
+      
+      // If not available, try localStorage
+      if (luggageData.length === 0) {
+        const stored = localStorage.getItem('luggageStorage');
+        if (stored) {
+          luggageData = JSON.parse(stored);
+          window.luggageStorage = luggageData; // Cache in memory
         }
       }
+      
+      return luggageData;
+    } catch (error) {
+      console.error('Error loading luggage data:', error);
+      return [];
+    }
+  };
+
+  // Listen for luggage updates
+  useEffect(() => {
+    const handleLuggageUpdate = () => {
+      if (searchTerm || statusFilter !== 'all') {
+        performSearch(searchTerm, statusFilter);
+      }
+    };
+
+    window.addEventListener('luggageUpdated', handleLuggageUpdate);
+    return () => window.removeEventListener('luggageUpdated', handleLuggageUpdate);
+  }, [searchTerm, statusFilter]);
+
+  const performSearch = (term, status) => {
+    setIsSearching(true);
+    
+    // Simulate search delay for better UX
+    setTimeout(() => {
+      const luggageData = loadLuggageData();
+      let filteredResults = [...luggageData];
+
+      // Filter by status
+      if (status && status !== 'all') {
+        filteredResults = filteredResults.filter(item => 
+          item.status?.toLowerCase() === status.toLowerCase()
+        );
+      }
+
+      // Filter by search term
+      if (term.trim()) {
+        const searchLower = term.toLowerCase().trim();
+        filteredResults = filteredResults.filter(item =>
+          item.tagNumber?.toLowerCase().includes(searchLower) ||
+          item.ownerName?.toLowerCase().includes(searchLower) ||
+          item.ownerPhone?.includes(searchLower) ||
+          item.ownerEmail?.toLowerCase().includes(searchLower) ||
+          item.description?.toLowerCase().includes(searchLower) ||
+          item.storageLocation?.toLowerCase().includes(searchLower)
+        );
+      }
+
+      // Sort by most recent first
+      filteredResults.sort((a, b) => {
+        const dateA = new Date(a.checkInTimestamp || a.createdAt || 0);
+        const dateB = new Date(b.checkInTimestamp || b.createdAt || 0);
+        return dateB - dateA;
+      });
 
       setResults(filteredResults);
       if (onResults) {
         onResults(filteredResults);
       }
-      setIsLoading(false);
-    }, 500);
+      setIsSearching(false);
+    }, 300);
   };
 
-  useEffect(() => {
-    performSearch();
-  }, [statusFilter, dateFilter]);
-
-  const handleSubmit = (e) => {
+  const handleSearch = (e) => {
     e.preventDefault();
-    performSearch();
+    performSearch(searchTerm, statusFilter);
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'stored':
-        return 'bg-green-100 text-green-800';
-      case 'checked_out':
-        return 'bg-gray-100 text-gray-800';
-      case 'overdue':
-        return 'bg-red-100 text-red-800';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+  const handleInputChange = (value) => {
+    setSearchTerm(value);
+    
+    // Auto-search as user types (debounced)
+    if (value.trim().length >= 2 || value.trim().length === 0) {
+      performSearch(value, statusFilter);
     }
   };
 
-  const getStatusLabel = (status) => {
-    switch (status) {
-      case 'stored':
-        return 'Stored';
-      case 'checked_out':
-        return 'Checked Out';
-      case 'overdue':
-        return 'Overdue';
-      case 'pending':
-        return 'Pending';
-      default:
-        return status;
+  const handleStatusFilterChange = (status) => {
+    setStatusFilter(status);
+    performSearch(searchTerm, status);
+  };
+
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'stored': return 'text-green-600 bg-green-100';
+      case 'checked-out': return 'text-gray-600 bg-gray-100';
+      case 'pending': return 'text-yellow-600 bg-yellow-100';
+      default: return 'text-blue-600 bg-blue-100';
+    }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    try {
+      return new Date(dateString).toLocaleDateString('en-IN', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return dateString;
     }
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Search Form */}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Enter search term..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-              />
-            </div>
+      <form onSubmit={handleSearch} className="space-y-4">
+        <div className="flex gap-4">
+          <div className="flex-1 relative">
+            <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => handleInputChange(e.target.value)}
+              placeholder="Search by tag number, owner name, phone, or description..."
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
           </div>
           
-          <select
-            value={searchType}
-            onChange={(e) => setSearchType(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-          >
-            <option value="tagNumber">Tag Number</option>
-            <option value="ownerName">Owner Name</option>
-            <option value="ownerPhone">Phone Number</option>
-            <option value="ownerEmail">Email</option>
-          </select>
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="px-6 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-          >
-            {isLoading ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                Searching...
-              </>
-            ) : (
-              <>
-                <Search size={16} />
-                Search
-              </>
-            )}
-          </button>
-        </div>
-
-        {/* Filters */}
-        <div className="flex flex-wrap gap-4 p-4 bg-gray-50 rounded-lg">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+          <div className="relative">
+            <Filter size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              onChange={(e) => handleStatusFilterChange(e.target.value)}
+              className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">All Status</option>
               <option value="stored">Stored</option>
-              <option value="checked_out">Checked Out</option>
-              <option value="overdue">Overdue</option>
+              <option value="checked-out">Checked Out</option>
               <option value="pending">Pending</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
-            <select
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-            >
-              <option value="all">All Dates</option>
-              <option value="today">Today</option>
-              <option value="week">This Week</option>
-              <option value="month">This Month</option>
             </select>
           </div>
         </div>
       </form>
 
-      {/* Results */}
-      <div className="space-y-3">
-        {isLoading ? (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div>
-            <p className="text-gray-500 mt-2">Searching...</p>
-          </div>
-        ) : results.length > 0 ? (
-          <>
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-600">
-                Found {results.length} result{results.length !== 1 ? 's' : ''}
-              </p>
-            </div>
-            
-            <div className="space-y-3">
-              {results.map((item, index) => (
-                <div key={index} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start space-x-4">
-                      <div className="flex-shrink-0">
-                        <PackageOpen className="h-10 w-10 text-gray-400" />
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-lg font-medium text-gray-900">{item.tagNumber}</h3>
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}>
-                            {getStatusLabel(item.status)}
-                          </span>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <User size={14} />
-                              <span>{item.ownerName}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Phone size={14} />
-                              <span>{item.ownerPhone}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <MapPin size={14} />
-                              <span>Location: {item.storageLocation}</span>
-                            </div>
-                          </div>
-                          
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <Calendar size={14} />
-                              <span>Check-in: {item.checkInDate} at {item.checkInTime}</span>
-                            </div>
-                            {item.checkOutDate && (
-                              <div className="flex items-center gap-2">
-                                <Clock size={14} />
-                                <span>Check-out: {item.checkOutDate} at {item.checkOutTime}</span>
-                              </div>
-                            )}
-                            <div className="text-sm">
-                              <span className="font-medium">Fees: ₹{item.fees.toFixed(2)}</span>
-                              <span className="ml-3">Weight: {item.weight}</span>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="mt-3 text-sm text-gray-600">
-                          <p><span className="font-medium">Description:</span> {item.description}</p>
-                          {item.specialInstructions && (
-                            <p className="mt-1"><span className="font-medium">Instructions:</span> {item.specialInstructions}</p>
-                          )}
-                        </div>
+      {/* Search Results */}
+      {isSearching ? (
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-3"></div>
+          <p className="text-gray-500">Searching...</p>
+        </div>
+      ) : results.length > 0 ? (
+        <div className="space-y-3">
+          <p className="text-sm text-gray-600">
+            Found {results.length} result{results.length !== 1 ? 's' : ''}
+          </p>
+          
+          <div className="space-y-3">
+            {results.map((item, index) => (
+              <div key={index} className="bg-white border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:shadow-md transition-all">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 space-y-2">
+                    {/* Header */}
+                    <div className="flex items-center gap-3">
+                      <Package size={20} className="text-gray-400" />
+                      <div>
+                        <h3 className="font-semibold text-gray-900">
+                          {item.tagNumber}
+                        </h3>
+                        <p className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}>
+                          {item.status || 'Unknown'}
+                        </p>
                       </div>
                     </div>
 
-                    {showSelectButton && onSelect && (
-                      <div className="ml-4">
-                        <button
-                          onClick={() => onSelect(item)}
-                          className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
-                        >
-                          Select
-                        </button>
+                    {/* Details */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                      <div className="flex items-center gap-2">
+                        <User size={16} className="text-gray-400" />
+                        <span className="text-gray-600">Owner:</span>
+                        <span className="font-medium">{item.ownerName}</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <Phone size={16} className="text-gray-400" />
+                        <span className="text-gray-600">Phone:</span>
+                        <span className="font-medium">{item.ownerPhone}</span>
+                      </div>
+                      
+                      {item.storageLocation && (
+                        <div className="flex items-center gap-2">
+                          <MapPin size={16} className="text-gray-400" />
+                          <span className="text-gray-600">Location:</span>
+                          <span className="font-medium">{item.storageLocation}</span>
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center gap-2">
+                        <Clock size={16} className="text-gray-400" />
+                        <span className="text-gray-600">Check-in:</span>
+                        <span className="font-medium">{formatDate(item.checkInTimestamp)}</span>
+                      </div>
+                    </div>
+
+                    {/* Description */}
+                    {item.description && (
+                      <div className="text-sm">
+                        <span className="text-gray-600">Description:</span>
+                        <p className="text-gray-900 mt-1">{item.description}</p>
                       </div>
                     )}
+
+                    {/* Additional Info */}
+                    <div className="flex items-center gap-4 text-sm text-gray-500">
+                      {item.weight && <span>Weight: {item.weight}kg</span>}
+                      {item.fees && <span>Fee: ₹{item.fees}</span>}
+                      {item.hasValuables && <span className="text-orange-600">Contains valuables</span>}
+                    </div>
                   </div>
+
+                  {/* Select Button */}
+                  {showSelectButton && onSelect && (
+                    <div className="ml-4">
+                      <button
+                        onClick={() => onSelect(item)}
+                        className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        Select
+                      </button>
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
-          </>
-        ) : (
-          <div className="text-center py-8">
-            <PackageOpen className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Results Found</h3>
-            <p className="text-gray-500">Try adjusting your search criteria or filters</p>
+              </div>
+            ))}
           </div>
-        )}
-      </div>
+        </div>
+      ) : searchTerm || statusFilter !== 'all' ? (
+        <div className="text-center py-8">
+          <Package className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No Results Found</h3>
+          <p className="text-gray-500">
+            Try adjusting your search terms or filters
+          </p>
+        </div>
+      ) : (
+        <div className="text-center py-8">
+          <Search className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Search Luggage</h3>
+          <p className="text-gray-500">
+            Enter a tag number, owner name, or other details to search
+          </p>
+        </div>
+      )}
     </div>
   );
 };

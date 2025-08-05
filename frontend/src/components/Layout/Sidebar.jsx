@@ -47,13 +47,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     // }
   ];
 
-  const quickStats = [
-    { label: 'Available', value: '24', color: 'text-green-600' },
-    { label: 'Occupied', value: '18', color: 'text-red-600' },
-    { label: 'Maintenance', value: '2', color: 'text-yellow-600' }
-  ];
-
-  return (
+   return (
     <>
       {/* Sidebar */}
       <div className={`
@@ -77,21 +71,6 @@ const Sidebar = ({ isOpen, onClose }) => {
           >
             <X className="h-5 w-5" />
           </button>
-        </div>
-
-        {/* Quick Stats */}
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-sm font-medium text-gray-700 mb-3">Quick Stats</h3>
-          <div className="space-y-2">
-            {quickStats.map((stat) => (
-              <div key={stat.label} className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">{stat.label}</span>
-                <span className={`text-sm font-semibold ${stat.color}`}>
-                  {stat.value}
-                </span>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* Navigation */}

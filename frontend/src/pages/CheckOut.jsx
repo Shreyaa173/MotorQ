@@ -167,14 +167,14 @@ const CheckOut = () => {
                   <div className="p-6">
                     <LuggageSearch
                       onResults={setSearchResults}
-                      filterStatus="stored"
+                      filterStatus="all"
                       showSelectButton={true}
                       onSelect={handleLuggageSelect}
                     />
                   </div>
                 </div>
 
-                {searchResults.length > 0 && (
+                {/* {searchResults.length > 0 && (
                   <div className="bg-white rounded-lg shadow-sm">
                     <div className="p-6 border-b border-gray-200">
                       <h3 className="text-lg font-medium text-gray-900">
@@ -220,7 +220,7 @@ const CheckOut = () => {
                       ))}
                     </div>
                   </div>
-                )}
+                )} */}
               </div>
             )}
 

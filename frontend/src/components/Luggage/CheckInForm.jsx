@@ -137,50 +137,59 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
     setCurrentStep((prev) => prev - 1);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+// Inside handleSubmit in CheckInForm.jsx
 
-    if (!validateStep(3)) {
-      return;
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  if (!validateStep(3)) return;
+
+  setIsSubmitting(true);
+
+  try {
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    const tagNumber = `LUG-${Date.now().toString().slice(-6)}`;
+    const currentDate = new Date();
+
+    const checkInData = {
+      ...formData,
+      tagNumber,
+      checkInDate: currentDate.toISOString().split("T")[0],
+      checkInTime: currentDate.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      checkInTimestamp: currentDate.toISOString(),
+      status: "stored",
+      createdAt: currentDate.toISOString(),
+      updatedAt: currentDate.toISOString(),
+    };
+
+    if (!window.luggageStorage) {
+      const stored = localStorage.getItem('luggageStorage');
+      window.luggageStorage = stored ? JSON.parse(stored) : [];
     }
 
-    setIsSubmitting(true);
+    window.luggageStorage.push(checkInData);
+    localStorage.setItem('luggageStorage', JSON.stringify(window.luggageStorage));
 
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+    window.dispatchEvent(new CustomEvent('luggageUpdated', { 
+      detail: { type: 'checkin', data: checkInData } 
+    }));
 
-      // Generate tag number
-      const tagNumber = `LUG-${Date.now().toString().slice(-6)}`;
-
-      const checkInData = {
-        ...formData,
-        tagNumber,
-        checkInDate: new Date().toISOString().split("T")[0],
-        checkInTime: new Date().toLocaleTimeString("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        status: "stored",
-      };
-
-      // Save to localStorage (in real app, this would be API call)
-      const existingLuggage = JSON.parse(
-        localStorage.getItem("luggage_storage") || "[]"
-      );
-      existingLuggage.push(checkInData);
-      localStorage.setItem("luggage_storage", JSON.stringify(existingLuggage));
-
-      if (onSuccess) {
-        onSuccess(checkInData);
-      }
-    } catch (error) {
-      console.error("Check-in failed:", error);
-      setErrors({ submit: "Failed to check in luggage. Please try again." });
-    } finally {
-      setIsSubmitting(false);
+    if (onSuccess) {
+      onSuccess(checkInData); // ← ✅ after dispatch
     }
-  };
+  } catch (error) {
+    console.error("Check-in failed:", error);
+    setErrors({ submit: "Failed to check in luggage. Please try again." });
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
 
   const renderStep1 = () => (
     <div className="space-y-6">
@@ -200,7 +209,7 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
             name="ownerName"
             value={formData.ownerName}
             onChange={handleInputChange}
-            className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
+            className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
               errors.ownerName ? "border-red-300" : "border-gray-300"
             }`}
             placeholder="Enter full name"
@@ -220,7 +229,7 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
             name="ownerPhone"
             value={formData.ownerPhone}
             onChange={handleInputChange}
-            className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
+            className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
               errors.ownerPhone ? "border-red-300" : "border-gray-300"
             }`}
             placeholder="+1 (555) 123-4567"
@@ -240,7 +249,7 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
             name="ownerEmail"
             value={formData.ownerEmail}
             onChange={handleInputChange}
-            className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
+            className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
               errors.ownerEmail ? "border-red-300" : "border-gray-300"
             }`}
             placeholder="email@example.com"
@@ -260,7 +269,7 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
               name="emergencyContact"
               value={formData.emergencyContact}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Emergency contact name"
             />
           </div>
@@ -273,7 +282,7 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
               name="emergencyPhone"
               value={formData.emergencyPhone}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Emergency phone number"
             />
           </div>
@@ -302,7 +311,7 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
             value={formData.description}
             onChange={handleInputChange}
             rows={3}
-            className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
+            className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
               errors.description ? "border-red-300" : "border-gray-300"
             }`}
             placeholder="Describe your luggage (color, size, type, distinctive features)"
@@ -324,7 +333,7 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
               onChange={handleInputChange}
               step="0.1"
               min="0"
-              className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
+              className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                 errors.weight ? "border-red-300" : "border-gray-300"
               }`}
               placeholder="0.0"
@@ -343,7 +352,7 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
               name="estimatedDuration"
               value={formData.estimatedDuration}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="">Select duration</option>
               <option value="1">0–1 hour</option>
@@ -363,7 +372,7 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
             name="storageLocation"
             value={formData.storageLocation}
             onChange={handleInputChange}
-            className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
+            className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
               errors.storageLocation ? "border-red-300" : "border-gray-300"
             }`}
           >
@@ -387,11 +396,11 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
           <div className="flex items-center">
             <input
               type="checkbox"
-              nameid="hasValuables"
+              id="hasValuables"
               name="hasValuables"
               checked={formData.hasValuables}
               onChange={handleInputChange}
-              className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
             <label
               htmlFor="hasValuables"
@@ -407,7 +416,7 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
                 value={formData.valuablesDescription}
                 onChange={handleInputChange}
                 rows={2}
-                className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
+                className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                   errors.valuablesDescription
                     ? "border-red-300"
                     : "border-gray-300"
@@ -433,7 +442,7 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
             value={formData.specialInstructions}
             onChange={handleInputChange}
             rows={2}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="Any special handling instructions or notes"
           />
         </div>
@@ -445,7 +454,7 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
                 <DollarSign size={16} className="inline mr-1" />
                 Estimated Storage Fee:
               </span>
-              <span className="text-lg font-semibold text-orange-600">
+              <span className="text-lg font-semibold text-blue-600">
                 ₹{formData.fees}
               </span>
             </div>
@@ -513,7 +522,7 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
             <span className="font-medium text-gray-900">
               Total Storage Fee:
             </span>
-            <span className="text-xl font-bold text-orange-600">
+            <span className="text-xl font-bold text-blue-600">
               ₹{formData.fees}
             </span>
           </div>
@@ -549,7 +558,7 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
           name="agreedToTerms"
           checked={formData.agreedToTerms}
           onChange={handleInputChange}
-          className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
+          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
         />
         <label
           htmlFor="agreedToTerms"
@@ -586,7 +595,7 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
                 key={step}
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                   step === currentStep
-                    ? "bg-orange-500 text-white"
+                    ? "bg-blue-500 text-white"
                     : step < currentStep
                     ? "bg-green-500 text-white"
                     : "bg-gray-200 text-gray-600"
@@ -599,7 +608,7 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2">
           <div
-            className="bg-orange-500 h-2 rounded-full transition-all duration-300"
+            className="bg-blue-500 h-2 rounded-full transition-all duration-300"
             style={{ width: `${(currentStep / 3) * 100}%` }}
           />
         </div>
@@ -616,7 +625,7 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
               <button
                 type="button"
                 onClick={handlePrevious}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 Previous
               </button>
@@ -624,19 +633,21 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
           </div>
 
           <div className="flex space-x-3">
-            <button
-              type="button"
-              onClick={onCancel}
-              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500"
-            >
-              Cancel
-            </button>
+            {onCancel && (
+              <button
+                type="button"
+                onClick={onCancel}
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500"
+              >
+                Cancel
+              </button>
+            )}
 
             {currentStep < 3 ? (
               <button
                 type="button"
                 onClick={handleNext}
-                className="px-6 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 Next
               </button>
@@ -644,7 +655,7 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-6 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
               >
                 {isSubmitting ? (
                   <>
