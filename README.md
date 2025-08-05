@@ -1,8 +1,6 @@
 # 🧳 Airport Luggage Storage System
 ---
 
----
-
 ## 🚀 Project Overview
 
 The **Airport Luggage Storage System** is designed for **airport staff** to manage and track the usage of **storage lockers** for passenger luggage.  
@@ -99,8 +97,3 @@ npm start
 **Email:** [shreya186btcse23@igdtuw.ac.in]
 
 ---
-
-## 📃 License
-
-This project is a part of academic coursework and not intended for production use.  
-Use under **IGDTUW Application Engineering Assignment guidelines**.
