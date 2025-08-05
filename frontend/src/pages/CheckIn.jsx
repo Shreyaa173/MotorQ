@@ -44,11 +44,11 @@ const CheckIn = () => {
             {/* Quick Stats */}
             <div className="flex gap-4">
               <div className="bg-white rounded-lg shadow p-4 text-center min-w-[100px]">
-                <div className="text-2xl font-bold text-blue-600">127</div>
+                <div className="text-2xl font-bold text-blue-600">2</div>
                 <div className="text-sm text-gray-600">Today's Check-ins</div>
               </div>
               <div className="bg-white rounded-lg shadow p-4 text-center min-w-[100px]">
-                <div className="text-2xl font-bold text-green-600">892</div>
+                <div className="text-2xl font-bold text-green-600">30</div>
                 <div className="text-sm text-gray-600">Active Storage</div>
               </div>
             </div>

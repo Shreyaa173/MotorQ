@@ -1,4 +1,3 @@
-// pages/Dashboard.jsx - Layout Fix with Explicit Heights
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import DashboardOverview from '../components/Dashboard/DashboardPage';
@@ -14,12 +13,12 @@ const Dashboard = () => {
   const [filteredLockers, setFilteredLockers] = useState([]);
   const [selectedLocker, setSelectedLocker] = useState(null);
   const [stats, setStats] = useState({
-    totalLockers: 0,
-    availableLockers: 0,
-    occupiedLockers: 0,
+    totalLockers: 30,
+    availableLockers: 12,
+    occupiedLockers: 18,
     maintenanceLockers: 0,
     activeSessionsCount: 0,
-    todayRevenue: 0,
+    todayRevenue: 2000,
     utilizationRate: 0,
     revenueData: []
   });
@@ -44,50 +43,61 @@ const Dashboard = () => {
   }, [filters, lockers]);
 
   const fetchDashboardData = async () => {
-    try {
-      setIsLoading(true);
-      
-      // Fetch lockers and stats in parallel
-      const [lockersResponse, statsResponse] = await Promise.all([
-        lockerService.getAllLockers(),
-        lockerService.getDashboardStats()
-      ]);
+  try {
+    setIsLoading(true);
 
-      // Safely extract data with fallbacks
-      const lockersData = lockersResponse?.data || [];
-      const statsData = statsResponse?.data || {};
+    // Skip actual API calls for dev/test
+    // const [lockersResponse, statsResponse] = await Promise.all([
+    //   lockerService.getAllLockers(),
+    //   lockerService.getDashboardStats()
+    // ]);
 
-      setLockers(lockersData);
-      setStats({
-        totalLockers: statsData.totalLockers || 0,
-        availableLockers: statsData.availableLockers || 0,
-        occupiedLockers: statsData.occupiedLockers || 0,
-        maintenanceLockers: statsData.maintenanceLockers || 0,
-        activeSessionsCount: statsData.activeSessionsCount || 0,
-        todayRevenue: statsData.todayRevenue || 0,
-        utilizationRate: statsData.utilizationRate || 0,
-        revenueData: statsData.revenueData || []
-      });
-      
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-      toast.error('Failed to load dashboard data');
-      
-      // Set default stats in case of error
-      setStats({
-        totalLockers: 0,
-        availableLockers: 0,
-        occupiedLockers: 0,
-        maintenanceLockers: 0,
-        activeSessionsCount: 0,
-        todayRevenue: 0,
-        utilizationRate: 0,
-        revenueData: []
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    // Set mock lockers (optional if you're not using LockerGrid)
+    const mockLockers = [
+      {
+        lockerNumber: 'L001',
+        type: 'Standard',
+        status: 'Available',
+        location: 'Station A',
+        updatedAt: new Date().toISOString()
+      },
+      {
+        lockerNumber: 'L002',
+        type: 'Large',
+        status: 'Occupied',
+        location: 'Station B',
+        updatedAt: new Date().toISOString()
+      }
+      // Add more mock lockers as needed
+    ];
+
+    setLockers(mockLockers);
+
+    // Hardcoded stats for development/testing
+    setStats({
+      totalLockers: 30,
+      availableLockers: 12,
+      occupiedLockers: 18,
+      maintenanceLockers: 0,
+      activeSessionsCount: 4,
+      todayRevenue: 2000,
+      utilizationRate: 60,
+      revenueData: [
+        { date: '2025-08-01', revenue: 400 },
+        { date: '2025-08-02', revenue: 500 },
+        { date: '2025-08-03', revenue: 600 },
+        { date: '2025-08-04', revenue: 500 }
+      ]
+    });
+
+  } catch (error) {
+    console.error('Error in mock dashboard setup:', error);
+    toast.error('Failed to load dashboard (mock)');
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   const handleRefresh = async () => {
     try {

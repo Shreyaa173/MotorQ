@@ -1,22 +1,33 @@
-import React, { useState } from 'react';
-import { User, Phone, Mail, Package, MapPin, DollarSign, FileText, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
+import React, { useState } from "react";
+import {
+  User,
+  Phone,
+  Mail,
+  Package,
+  MapPin,
+  DollarSign,
+  FileText,
+  Clock,
+  AlertTriangle,
+  CheckCircle,
+} from "lucide-react";
 
 const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
   const [formData, setFormData] = useState({
-    ownerName: prefilledData.ownerName || '',
-    ownerPhone: prefilledData.ownerPhone || '',
-    ownerEmail: prefilledData.ownerEmail || '',
-    description: prefilledData.description || '',
-    weight: prefilledData.weight || '',
-    specialInstructions: prefilledData.specialInstructions || '',
-    storageLocation: prefilledData.storageLocation || '',
-    estimatedDuration: prefilledData.estimatedDuration || '1',
-    fees: prefilledData.fees || '',
-    emergencyContact: prefilledData.emergencyContact || '',
-    emergencyPhone: prefilledData.emergencyPhone || '',
+    ownerName: prefilledData.ownerName || "",
+    ownerPhone: prefilledData.ownerPhone || "",
+    ownerEmail: prefilledData.ownerEmail || "",
+    description: prefilledData.description || "",
+    weight: prefilledData.weight || "",
+    specialInstructions: prefilledData.specialInstructions || "",
+    storageLocation: prefilledData.storageLocation || "",
+    estimatedDuration: prefilledData.estimatedDuration || "1",
+    fees: prefilledData.fees || "",
+    emergencyContact: prefilledData.emergencyContact || "",
+    emergencyPhone: prefilledData.emergencyPhone || "",
     hasValuables: prefilledData.hasValuables || false,
-    valuablesDescription: prefilledData.valuablesDescription || '',
-    agreedToTerms: false
+    valuablesDescription: prefilledData.valuablesDescription || "",
+    agreedToTerms: false,
   });
 
   const [errors, setErrors] = useState({});
@@ -24,42 +35,48 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
   const [currentStep, setCurrentStep] = useState(1);
 
   // Calculate fees based on duration and weight
-  const calculateFees = (duration, weight) => {
-    const baseFee = 10;
-    const dailyRate = 5;
-    const weightMultiplier = weight > 20 ? 1.5 : 1;
-    
-    return (baseFee + (parseInt(duration) - 1) * dailyRate) * weightMultiplier;
+  const calculateFees = (durationInHours) => {
+    const hours = parseFloat(durationInHours);
+
+    if (isNaN(hours) || hours <= 0) return 0;
+
+    if (hours <= 1) return 100;
+    if (hours <= 3) return 200;
+    if (hours <= 6) return 300;
+
+    return 500; // max per day
   };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    const newValue = type === 'checkbox' ? checked : value;
-    
-    setFormData(prev => ({
+    const newValue = type === "checkbox" ? checked : value;
+
+    setFormData((prev) => ({
       ...prev,
-      [name]: newValue
+      [name]: newValue,
     }));
 
     // Auto-calculate fees when duration or weight changes
-    if (name === 'estimatedDuration' || name === 'weight') {
-      const duration = name === 'estimatedDuration' ? value : formData.estimatedDuration;
-      const weight = name === 'weight' ? parseFloat(value) : parseFloat(formData.weight);
-      
+    if (name === "estimatedDuration" || name === "weight") {
+      const duration =
+        name === "estimatedDuration" ? value : formData.estimatedDuration;
+      const weight =
+        name === "weight" ? parseFloat(value) : parseFloat(formData.weight);
+
       if (duration && weight) {
         const calculatedFees = calculateFees(duration, weight);
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
-          fees: calculatedFees.toFixed(2)
+          fees: calculatedFees.toFixed(2),
         }));
       }
     }
 
     // Clear error when user starts typing
     if (errors[name]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: ''
+        [name]: "",
       }));
     }
   };
@@ -69,40 +86,40 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
 
     if (step === 1) {
       if (!formData.ownerName.trim()) {
-        newErrors.ownerName = 'Owner name is required';
+        newErrors.ownerName = "Owner name is required";
       }
       if (!formData.ownerPhone.trim()) {
-        newErrors.ownerPhone = 'Phone number is required';
+        newErrors.ownerPhone = "Phone number is required";
       } else if (!/^\+?[\d\s\-\(\)]+$/.test(formData.ownerPhone)) {
-        newErrors.ownerPhone = 'Please enter a valid phone number';
+        newErrors.ownerPhone = "Please enter a valid phone number";
       }
       if (!formData.ownerEmail.trim()) {
-        newErrors.ownerEmail = 'Email is required';
+        newErrors.ownerEmail = "Email is required";
       } else if (!/\S+@\S+\.\S+/.test(formData.ownerEmail)) {
-        newErrors.ownerEmail = 'Please enter a valid email address';
+        newErrors.ownerEmail = "Please enter a valid email address";
       }
     }
 
     if (step === 2) {
       if (!formData.description.trim()) {
-        newErrors.description = 'Luggage description is required';
+        newErrors.description = "Luggage description is required";
       }
       if (!formData.weight) {
-        newErrors.weight = 'Weight is required';
+        newErrors.weight = "Weight is required";
       } else if (parseFloat(formData.weight) <= 0) {
-        newErrors.weight = 'Weight must be greater than 0';
+        newErrors.weight = "Weight must be greater than 0";
       }
       if (!formData.storageLocation.trim()) {
-        newErrors.storageLocation = 'Storage location is required';
+        newErrors.storageLocation = "Storage location is required";
       }
       if (formData.hasValuables && !formData.valuablesDescription.trim()) {
-        newErrors.valuablesDescription = 'Please describe valuable items';
+        newErrors.valuablesDescription = "Please describe valuable items";
       }
     }
 
     if (step === 3) {
       if (!formData.agreedToTerms) {
-        newErrors.agreedToTerms = 'You must agree to the terms and conditions';
+        newErrors.agreedToTerms = "You must agree to the terms and conditions";
       }
     }
 
@@ -112,17 +129,17 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
 
   const handleNext = () => {
     if (validateStep(currentStep)) {
-      setCurrentStep(prev => prev + 1);
+      setCurrentStep((prev) => prev + 1);
     }
   };
 
   const handlePrevious = () => {
-    setCurrentStep(prev => prev - 1);
+    setCurrentStep((prev) => prev - 1);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateStep(3)) {
       return;
     }
@@ -131,33 +148,35 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
 
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Generate tag number
       const tagNumber = `LUG-${Date.now().toString().slice(-6)}`;
-      
+
       const checkInData = {
         ...formData,
         tagNumber,
-        checkInDate: new Date().toISOString().split('T')[0],
-        checkInTime: new Date().toLocaleTimeString('en-US', { 
-          hour: '2-digit', 
-          minute: '2-digit' 
+        checkInDate: new Date().toISOString().split("T")[0],
+        checkInTime: new Date().toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
         }),
-        status: 'stored'
+        status: "stored",
       };
 
       // Save to localStorage (in real app, this would be API call)
-      const existingLuggage = JSON.parse(localStorage.getItem('luggage_storage') || '[]');
+      const existingLuggage = JSON.parse(
+        localStorage.getItem("luggage_storage") || "[]"
+      );
       existingLuggage.push(checkInData);
-      localStorage.setItem('luggage_storage', JSON.stringify(existingLuggage));
+      localStorage.setItem("luggage_storage", JSON.stringify(existingLuggage));
 
       if (onSuccess) {
         onSuccess(checkInData);
       }
     } catch (error) {
-      console.error('Check-in failed:', error);
-      setErrors({ submit: 'Failed to check in luggage. Please try again.' });
+      console.error("Check-in failed:", error);
+      setErrors({ submit: "Failed to check in luggage. Please try again." });
     } finally {
       setIsSubmitting(false);
     }
@@ -182,7 +201,7 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
             value={formData.ownerName}
             onChange={handleInputChange}
             className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-              errors.ownerName ? 'border-red-300' : 'border-gray-300'
+              errors.ownerName ? "border-red-300" : "border-gray-300"
             }`}
             placeholder="Enter full name"
           />
@@ -202,7 +221,7 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
             value={formData.ownerPhone}
             onChange={handleInputChange}
             className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-              errors.ownerPhone ? 'border-red-300' : 'border-gray-300'
+              errors.ownerPhone ? "border-red-300" : "border-gray-300"
             }`}
             placeholder="+1 (555) 123-4567"
           />
@@ -222,7 +241,7 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
             value={formData.ownerEmail}
             onChange={handleInputChange}
             className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-              errors.ownerEmail ? 'border-red-300' : 'border-gray-300'
+              errors.ownerEmail ? "border-red-300" : "border-gray-300"
             }`}
             placeholder="email@example.com"
           />
@@ -267,7 +286,9 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
     <div className="space-y-6">
       <div className="text-center mb-6">
         <h3 className="text-lg font-medium text-gray-900">Luggage Details</h3>
-        <p className="text-sm text-gray-500">Provide information about your luggage</p>
+        <p className="text-sm text-gray-500">
+          Provide information about your luggage
+        </p>
       </div>
 
       <div className="grid grid-cols-1 gap-6">
@@ -282,7 +303,7 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
             onChange={handleInputChange}
             rows={3}
             className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-              errors.description ? 'border-red-300' : 'border-gray-300'
+              errors.description ? "border-red-300" : "border-gray-300"
             }`}
             placeholder="Describe your luggage (color, size, type, distinctive features)"
           />
@@ -304,7 +325,7 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
               step="0.1"
               min="0"
               className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-                errors.weight ? 'border-red-300' : 'border-gray-300'
+                errors.weight ? "border-red-300" : "border-gray-300"
               }`}
               placeholder="0.0"
             />
@@ -324,12 +345,11 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
               onChange={handleInputChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             >
-              <option value="1">1 day</option>
-              <option value="2">2 days</option>
-              <option value="3">3 days</option>
-              <option value="7">1 week</option>
-              <option value="14">2 weeks</option>
-              <option value="30">1 month</option>
+              <option value="">Select duration</option>
+              <option value="1">0–1 hour</option>
+              <option value="3">1–3 hours</option>
+              <option value="6">3–6 hours</option>
+              <option value="12">6+ hours</option>
             </select>
           </div>
         </div>
@@ -344,7 +364,7 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
             value={formData.storageLocation}
             onChange={handleInputChange}
             className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-              errors.storageLocation ? 'border-red-300' : 'border-gray-300'
+              errors.storageLocation ? "border-red-300" : "border-gray-300"
             }`}
           >
             <option value="">Select storage location</option>
@@ -357,7 +377,9 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
             <option value="C-02">Section C - Shelf 02</option>
           </select>
           {errors.storageLocation && (
-            <p className="mt-1 text-sm text-red-600">{errors.storageLocation}</p>
+            <p className="mt-1 text-sm text-red-600">
+              {errors.storageLocation}
+            </p>
           )}
         </div>
 
@@ -371,7 +393,10 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
               onChange={handleInputChange}
               className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
             />
-            <label htmlFor="hasValuables" className="ml-2 block text-sm text-gray-900">
+            <label
+              htmlFor="hasValuables"
+              className="ml-2 block text-sm text-gray-900"
+            >
               Contains valuable items
             </label>
           </div>
@@ -383,12 +408,16 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
                 onChange={handleInputChange}
                 rows={2}
                 className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-                  errors.valuablesDescription ? 'border-red-300' : 'border-gray-300'
+                  errors.valuablesDescription
+                    ? "border-red-300"
+                    : "border-gray-300"
                 }`}
                 placeholder="Describe valuable items (jewelry, electronics, etc.)"
               />
               {errors.valuablesDescription && (
-                <p className="mt-1 text-sm text-red-600">{errors.valuablesDescription}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.valuablesDescription}
+                </p>
               )}
             </div>
           )}
@@ -417,11 +446,12 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
                 Estimated Storage Fee:
               </span>
               <span className="text-lg font-semibold text-orange-600">
-                ${formData.fees}
+                ₹{formData.fees}
               </span>
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              Based on {formData.estimatedDuration} day(s) and {formData.weight}kg
+              Based on {formData.estimatedDuration} day(s) and {formData.weight}
+              kg
             </p>
           </div>
         )}
@@ -433,36 +463,59 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
     <div className="space-y-6">
       <div className="text-center mb-6">
         <h3 className="text-lg font-medium text-gray-900">Review & Confirm</h3>
-        <p className="text-sm text-gray-500">Please review your information before submitting</p>
+        <p className="text-sm text-gray-500">
+          Please review your information before submitting
+        </p>
       </div>
 
       <div className="bg-gray-50 p-6 rounded-lg space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <h4 className="font-medium text-gray-900 mb-2">Owner Information</h4>
+            <h4 className="font-medium text-gray-900 mb-2">
+              Owner Information
+            </h4>
             <p className="text-sm text-gray-600">Name: {formData.ownerName}</p>
-            <p className="text-sm text-gray-600">Phone: {formData.ownerPhone}</p>
-            <p className="text-sm text-gray-600">Email: {formData.ownerEmail}</p>
+            <p className="text-sm text-gray-600">
+              Phone: {formData.ownerPhone}
+            </p>
+            <p className="text-sm text-gray-600">
+              Email: {formData.ownerEmail}
+            </p>
             {formData.emergencyContact && (
-              <p className="text-sm text-gray-600">Emergency: {formData.emergencyContact} ({formData.emergencyPhone})</p>
+              <p className="text-sm text-gray-600">
+                Emergency: {formData.emergencyContact} (
+                {formData.emergencyPhone})
+              </p>
             )}
           </div>
           <div>
             <h4 className="font-medium text-gray-900 mb-2">Luggage Details</h4>
-            <p className="text-sm text-gray-600">Description: {formData.description}</p>
+            <p className="text-sm text-gray-600">
+              Description: {formData.description}
+            </p>
             <p className="text-sm text-gray-600">Weight: {formData.weight}kg</p>
-            <p className="text-sm text-gray-600">Duration: {formData.estimatedDuration} day(s)</p>
-            <p className="text-sm text-gray-600">Location: {formData.storageLocation}</p>
+            <p className="text-sm text-gray-600">
+              Duration: {formData.estimatedDuration} day(s)
+            </p>
+            <p className="text-sm text-gray-600">
+              Location: {formData.storageLocation}
+            </p>
             {formData.hasValuables && (
-              <p className="text-sm text-gray-600">Valuables: {formData.valuablesDescription}</p>
+              <p className="text-sm text-gray-600">
+                Valuables: {formData.valuablesDescription}
+              </p>
             )}
           </div>
         </div>
 
         <div className="border-t pt-4">
           <div className="flex justify-between items-center">
-            <span className="font-medium text-gray-900">Total Storage Fee:</span>
-            <span className="text-xl font-bold text-orange-600">${formData.fees}</span>
+            <span className="font-medium text-gray-900">
+              Total Storage Fee:
+            </span>
+            <span className="text-xl font-bold text-orange-600">
+              ₹{formData.fees}
+            </span>
           </div>
         </div>
       </div>
@@ -471,12 +524,16 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
         <div className="flex">
           <AlertTriangle className="h-5 w-5 text-yellow-400" />
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-yellow-800">Terms and Conditions</h3>
+            <h3 className="text-sm font-medium text-yellow-800">
+              Terms and Conditions
+            </h3>
             <div className="mt-2 text-sm text-yellow-700">
               <ul className="list-disc list-inside space-y-1">
                 <li>Storage fees must be paid in advance</li>
                 <li>Items must be collected within the agreed duration</li>
-                <li>We are not responsible for valuable items unless declared</li>
+                <li>
+                  We are not responsible for valuable items unless declared
+                </li>
                 <li>Late pickup may incur additional charges</li>
                 <li>Items left over 30 days past due may be disposed of</li>
               </ul>
@@ -494,7 +551,10 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
           onChange={handleInputChange}
           className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
         />
-        <label htmlFor="agreedToTerms" className="ml-2 block text-sm text-gray-900">
+        <label
+          htmlFor="agreedToTerms"
+          className="ml-2 block text-sm text-gray-900"
+        >
           I agree to the terms and conditions *
         </label>
       </div>
@@ -526,10 +586,10 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
                 key={step}
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                   step === currentStep
-                    ? 'bg-orange-500 text-white'
+                    ? "bg-orange-500 text-white"
                     : step < currentStep
-                    ? 'bg-green-500 text-white'
-                    : 'bg-gray-200 text-gray-600'
+                    ? "bg-green-500 text-white"
+                    : "bg-gray-200 text-gray-600"
                 }`}
               >
                 {step < currentStep ? <CheckCircle size={16} /> : step}
@@ -562,7 +622,7 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
               </button>
             )}
           </div>
-          
+
           <div className="flex space-x-3">
             <button
               type="button"
@@ -571,7 +631,7 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
             >
               Cancel
             </button>
-            
+
             {currentStep < 3 ? (
               <button
                 type="button"
@@ -592,7 +652,7 @@ const CheckInForm = ({ onSuccess, onCancel, prefilledData = {} }) => {
                     Processing...
                   </>
                 ) : (
-                  'Complete Check-In'
+                  "Complete Check-In"
                 )}
               </button>
             )}

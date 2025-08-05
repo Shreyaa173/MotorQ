@@ -315,7 +315,7 @@ const CheckOut = () => {
                   </p>
                   <div className="pt-2 border-t">
                     <p className="text-sm font-medium text-gray-900">
-                      Total Fees: ${selectedLuggage.fees}
+                      Total Fees: ₹{selectedLuggage.fees}
                     </p>
                   </div>
                 </div>

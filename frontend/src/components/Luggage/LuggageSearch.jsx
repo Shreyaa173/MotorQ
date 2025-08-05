@@ -13,7 +13,7 @@ const LuggageSearch = ({ onResults, filterStatus, showSelectButton = false, onSe
   const mockLuggageData = [
     {
       tagNumber: 'LUG-001',
-      ownerName: 'John Doe',
+      ownerName: 'Shreya Gupta',
       ownerPhone: '+1234567890',
       ownerEmail: 'john.doe@email.com',
       checkInDate: '2024-01-15',
@@ -23,13 +23,13 @@ const LuggageSearch = ({ onResults, filterStatus, showSelectButton = false, onSe
       storageLocation: 'A-15',
       status: 'stored',
       description: 'Large black suitcase with wheels',
-      fees: 25.00,
+      fees: 300.00,
       specialInstructions: 'Handle with care - fragile items',
       weight: '23kg'
     },
     {
       tagNumber: 'LUG-002',
-      ownerName: 'Jane Smith',
+      ownerName: 'Shreya Gupta',
       ownerPhone: '+1987654321',
       ownerEmail: 'jane.smith@email.com',
       checkInDate: '2024-01-14',
@@ -39,13 +39,13 @@ const LuggageSearch = ({ onResults, filterStatus, showSelectButton = false, onSe
       storageLocation: 'B-08',
       status: 'checked_out',
       description: 'Medium blue backpack',
-      fees: 15.00,
+      fees: 100.00,
       specialInstructions: null,
       weight: '8kg'
     },
     {
       tagNumber: 'LUG-003',
-      ownerName: 'Mike Johnson',
+      ownerName: 'Shreya Gupta',
       ownerPhone: '+1122334455',
       ownerEmail: 'mike.johnson@email.com',
       checkInDate: '2024-01-16',
@@ -55,13 +55,13 @@ const LuggageSearch = ({ onResults, filterStatus, showSelectButton = false, onSe
       storageLocation: 'C-22',
       status: 'stored',
       description: 'Red travel bag',
-      fees: 20.00,
+      fees: 200.00,
       specialInstructions: 'Owner prefers morning pickup',
       weight: '15kg'
     },
     {
       tagNumber: 'LUG-004',
-      ownerName: 'Sarah Wilson',
+      ownerName: 'Shreya Gupta',
       ownerPhone: '+1555666777',
       ownerEmail: 'sarah.wilson@email.com',
       checkInDate: '2024-01-13',
@@ -71,7 +71,7 @@ const LuggageSearch = ({ onResults, filterStatus, showSelectButton = false, onSe
       storageLocation: 'A-03',
       status: 'overdue',
       description: 'Small green duffel bag',
-      fees: 35.00,
+      fees: 200.00,
       specialInstructions: null,
       weight: '12kg'
     }
@@ -324,7 +324,7 @@ const LuggageSearch = ({ onResults, filterStatus, showSelectButton = false, onSe
                               </div>
                             )}
                             <div className="text-sm">
-                              <span className="font-medium">Fees: ${item.fees.toFixed(2)}</span>
+                              <span className="font-medium">Fees: ₹{item.fees.toFixed(2)}</span>
                               <span className="ml-3">Weight: {item.weight}</span>
                             </div>
                           </div>
