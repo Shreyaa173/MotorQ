@@ -1,4 +1,4 @@
-// pages/Dashboard.jsx
+// pages/Dashboard.jsx - Layout Fix with Explicit Heights
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import DashboardOverview from '../components/Dashboard/DashboardPage';
@@ -13,7 +13,16 @@ const Dashboard = () => {
   const [lockers, setLockers] = useState([]);
   const [filteredLockers, setFilteredLockers] = useState([]);
   const [selectedLocker, setSelectedLocker] = useState(null);
-  const [stats, setStats] = useState({});
+  const [stats, setStats] = useState({
+    totalLockers: 0,
+    availableLockers: 0,
+    occupiedLockers: 0,
+    maintenanceLockers: 0,
+    activeSessionsCount: 0,
+    todayRevenue: 0,
+    utilizationRate: 0,
+    revenueData: []
+  });
   const [filters, setFilters] = useState({
     search: '',
     types: [],
@@ -44,12 +53,37 @@ const Dashboard = () => {
         lockerService.getDashboardStats()
       ]);
 
-      setLockers(lockersResponse.data);
-      setStats(statsResponse.data);
+      // Safely extract data with fallbacks
+      const lockersData = lockersResponse?.data || [];
+      const statsData = statsResponse?.data || {};
+
+      setLockers(lockersData);
+      setStats({
+        totalLockers: statsData.totalLockers || 0,
+        availableLockers: statsData.availableLockers || 0,
+        occupiedLockers: statsData.occupiedLockers || 0,
+        maintenanceLockers: statsData.maintenanceLockers || 0,
+        activeSessionsCount: statsData.activeSessionsCount || 0,
+        todayRevenue: statsData.todayRevenue || 0,
+        utilizationRate: statsData.utilizationRate || 0,
+        revenueData: statsData.revenueData || []
+      });
       
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       toast.error('Failed to load dashboard data');
+      
+      // Set default stats in case of error
+      setStats({
+        totalLockers: 0,
+        availableLockers: 0,
+        occupiedLockers: 0,
+        maintenanceLockers: 0,
+        activeSessionsCount: 0,
+        todayRevenue: 0,
+        utilizationRate: 0,
+        revenueData: []
+      });
     } finally {
       setIsLoading(false);
     }
@@ -74,7 +108,7 @@ const Dashboard = () => {
     if (filters.search) {
       const searchTerm = filters.search.toLowerCase();
       filtered = filtered.filter(locker =>
-        locker.lockerNumber.toLowerCase().includes(searchTerm) ||
+        locker.lockerNumber?.toLowerCase().includes(searchTerm) ||
         locker.location?.toLowerCase().includes(searchTerm)
       );
     }
@@ -104,13 +138,13 @@ const Dashboard = () => {
     filtered.sort((a, b) => {
       switch (filters.sortBy) {
         case 'type':
-          return a.type.localeCompare(b.type);
+          return (a.type || '').localeCompare(b.type || '');
         case 'status':
-          return a.status.localeCompare(b.status);
+          return (a.status || '').localeCompare(b.status || '');
         case 'location':
           return (a.location || '').localeCompare(b.location || '');
         default:
-          return a.lockerNumber.localeCompare(b.lockerNumber);
+          return (a.lockerNumber || '').localeCompare(b.lockerNumber || '');
       }
     });
 
@@ -126,7 +160,7 @@ const Dashboard = () => {
         const sessionResponse = await sessionService.getActiveSessionByLocker(locker._id);
         setSelectedLocker({
           ...locker,
-          currentSession: sessionResponse.data
+          currentSession: sessionResponse?.data
         });
       } catch (error) {
         console.error('Error fetching session details:', error);
@@ -141,12 +175,17 @@ const Dashboard = () => {
   const handleExport = async () => {
     try {
       const exportData = filteredLockers.map(locker => ({
-        'Locker Number': locker.lockerNumber,
-        'Type': locker.type,
-        'Status': locker.status,
+        'Locker Number': locker.lockerNumber || 'N/A',
+        'Type': locker.type || 'N/A',
+        'Status': locker.status || 'N/A',
         'Location': locker.location || 'N/A',
-        'Last Updated': new Date(locker.updatedAt).toLocaleString('en-IN')
+        'Last Updated': locker.updatedAt ? new Date(locker.updatedAt).toLocaleString('en-IN') : 'N/A'
       }));
+
+      if (exportData.length === 0) {
+        toast.error('No data to export');
+        return;
+      }
 
       // Convert to CSV
       const csvContent = [
@@ -175,119 +214,131 @@ const Dashboard = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="h-screen flex items-center justify-center bg-gray-50">
         <Loading message="Loading dashboard..." />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Page Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Luggage Storage Dashboard
-              </h1>
-              <p className="text-gray-600 mt-1">
-                Real-time locker management and monitoring
-              </p>
-            </div>
-            
-            {/* Real-time indicator */}
-            <div className="flex items-center space-x-2">
-              <div className="flex items-center space-x-1">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm text-gray-600">Live</span>
-              </div>
-              <span className="text-sm text-gray-500">
-                Last updated: {new Date().toLocaleTimeString('en-IN')}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Dashboard Overview */}
-        <div className="mb-8">
-          <DashboardOverview 
-            stats={stats}
-            revenueData={stats.revenueData}
-          />
-        </div>
-
-        {/* Filter Panel */}
-        <div className="mb-6">
-          <FilterPanel
-            filters={filters}
-            onFiltersChange={handleFiltersChange}
-            onRefresh={handleRefresh}
-            onExport={handleExport}
-            isLoading={isRefreshing}
-          />
-        </div>
-
-        {/* Results Summary */}
-        <div className="mb-4">
-          <div className="bg-white rounded-lg p-4 shadow-sm border">
+    <div 
+      className="h-full overflow-y-auto bg-gray-50 dashboard-container"
+      style={{ 
+        height: 'calc(100vh - 60px)', // Adjust based on your header height
+        paddingBottom: '2rem'
+      }}
+    >
+      {/* Wrapper with explicit constraints */}
+      <div className="h-full">
+        {/* Container with proper spacing */}
+        <div className="px-4 py-6 mx-auto" style={{ maxWidth: 'none' }}>
+          
+          {/* Page Header */}
+          <div className="mb-12">
             <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600">
-                Showing <strong>{filteredLockers.length}</strong> of <strong>{lockers.length}</strong> lockers
-                {filters.search && (
-                  <span> matching "<strong>{filters.search}</strong>"</span>
-                )}
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                  Luggage Storage Dashboard
+                </h1>
+                <p className="text-gray-600">
+                  Real-time locker management and monitoring
+                </p>
               </div>
               
-              {selectedLocker && (
-                <button
-                  onClick={() => setSelectedLocker(null)}
-                  className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-                >
-                  Clear Selection
-                </button>
-              )}
+              {/* Real-time indicator */}
+              <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-1">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-sm text-gray-600">Live</span>
+                </div>
+                <span className="text-sm text-gray-500">
+                  Last updated: {new Date().toLocaleTimeString('en-IN')}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Locker Grid */}
-        <div className="mb-8">
-          <LockerGrid
-            lockers={filteredLockers}
-            onLockerClick={handleLockerClick}
-            selectedLocker={selectedLocker}
-          />
-        </div>
+          {/* Dashboard Overview - Give it more space */}
+          <div className="mb-12">
+            <DashboardOverview 
+              stats={stats}
+              revenueData={stats.revenueData}
+            />
+          </div>
 
-        {/* Quick Stats Footer */}
-        <div className="bg-white rounded-lg p-6 shadow-sm border">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-            <div>
-              <div className="text-2xl font-bold text-green-600">
-                {stats.availableLockers || 0}
+          {/* Filter Panel - More space */}
+          <div className="mb-10">
+            <FilterPanel
+              filters={filters}
+              onFiltersChange={handleFiltersChange}
+              onRefresh={handleRefresh}
+              onExport={handleExport}
+              isLoading={isRefreshing}
+            />
+          </div>
+
+          {/* Results Summary */}
+          <div className="mb-8">
+            <div className="bg-white rounded-lg p-6 shadow-sm border">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  Showing <strong>{filteredLockers.length}</strong> of <strong>{lockers.length}</strong> lockers
+                  {filters.search && (
+                    <span> matching "<strong>{filters.search}</strong>"</span>
+                  )}
+                </div>
+                
+                {selectedLocker && (
+                  <button
+                    onClick={() => setSelectedLocker(null)}
+                    className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                  >
+                    Clear Selection
+                  </button>
+                )}
               </div>
-              <div className="text-sm text-gray-600">Available Now</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-orange-600">
-                {stats.occupiedLockers || 0}
-              </div>
-              <div className="text-sm text-gray-600">Currently Occupied</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-blue-600">
-                {stats.activeSessionsCount || 0}
-              </div>
-              <div className="text-sm text-gray-600">Active Sessions</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-purple-600">
-                ₹{stats.todayRevenue || 0}
-              </div>
-              <div className="text-sm text-gray-600">Today's Revenue</div>
             </div>
           </div>
+
+          {/* Locker Grid - Ensure it has space */}
+          <div className="mb-12" style={{ minHeight: '400px' }}>
+            <LockerGrid
+              lockers={filteredLockers}
+              onLockerClick={handleLockerClick}
+              selectedLocker={selectedLocker}
+            />
+          </div>
+
+          {/* Quick Stats Footer */}
+          <div className="bg-white rounded-lg p-8 shadow-sm border">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+              <div>
+                <div className="text-3xl font-bold text-green-600 mb-2">
+                  {stats.availableLockers || 0}
+                </div>
+                <div className="text-sm text-gray-600">Available Now</div>
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-orange-600 mb-2">
+                  {stats.occupiedLockers || 0}
+                </div>
+                <div className="text-sm text-gray-600">Currently Occupied</div>
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-blue-600 mb-2">
+                  {stats.activeSessionsCount || 0}
+                </div>
+                <div className="text-sm text-gray-600">Active Sessions</div>
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-purple-600 mb-2">
+                  ₹{stats.todayRevenue || 0}
+                </div>
+                <div className="text-sm text-gray-600">Today's Revenue</div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>

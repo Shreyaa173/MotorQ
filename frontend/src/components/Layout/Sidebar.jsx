@@ -33,18 +33,18 @@ const Sidebar = ({ isOpen, onClose }) => {
       icon: LogOut,
       description: 'Retrieve Luggage'
     },
-    {
-      name: 'Analytics',
-      href: '/analytics',
-      icon: BarChart3,
-      description: 'Reports & Insights'
-    },
-    {
-      name: 'Maintenance',
-      href: '/maintenance',
-      icon: Settings,
-      description: 'Locker Management'
-    }
+    // {
+    //   name: 'Analytics',
+    //   href: '/analytics',
+    //   icon: BarChart3,
+    //   description: 'Reports & Insights'
+    // },
+    // {
+    //   name: 'Maintenance',
+    //   href: '/maintenance',
+    //   icon: Settings,
+    //   description: 'Locker Management'
+    // }
   ];
 
   const quickStats = [

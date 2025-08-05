@@ -1,7 +1,7 @@
 import React from 'react';
 import { Package, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
 
-const DashboardPage = ({ stats, revenueData }) => {
+const DashboardPage = ({ stats = {}, revenueData = [] }) => {
   const {
     totalLockers = 0,
     availableLockers = 0,
@@ -12,6 +12,7 @@ const DashboardPage = ({ stats, revenueData }) => {
   } = stats;
 
   const utilizationRate = totalLockers > 0 ? ((occupiedLockers / totalLockers) * 100).toFixed(1) : 0;
+  const availabilityPercentage = totalLockers > 0 ? ((availableLockers / totalLockers) * 100).toFixed(1) : 0;
 
   const StatCard = ({ title, value, icon: Icon, color, bgColor, subtitle }) => (
     <div className={`${bgColor} rounded-lg p-6 shadow-sm border`}>
@@ -27,6 +28,27 @@ const DashboardPage = ({ stats, revenueData }) => {
       </div>
     </div>
   );
+
+  // Show loading state if no data is available
+  if (!stats || Object.keys(stats).length === 0) {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-white rounded-lg p-6 shadow-sm border animate-pulse">
+              <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                  <div className="h-4 bg-gray-200 rounded w-20"></div>
+                  <div className="h-8 bg-gray-200 rounded w-16"></div>
+                </div>
+                <div className="h-12 w-12 bg-gray-200 rounded-full"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -45,7 +67,7 @@ const DashboardPage = ({ stats, revenueData }) => {
           icon={CheckCircle}
           color="text-green-600"
           bgColor="bg-white"
-          subtitle={`${((availableLockers / totalLockers) * 100).toFixed(1)}% free`}
+          subtitle={`${availabilityPercentage}% free`}
         />
         <StatCard
           title="Occupied"

@@ -3,8 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Toaster } from 'react-hot-toast';
 import Layout from './components/Layout/Layout';
 import Dashboard from './pages/Dashboard';
-// import CheckIn from './pages/CheckIn';
-// import CheckOut from './pages/CheckOut';
+import CheckIn from './pages/CheckIn';
+import CheckOut from './pages/CheckOut';
 // import Analytics from './pages/Analytics';
 // import Maintenance from './pages/Maintenance';
 
@@ -46,15 +46,15 @@ function App() {
             <Route index element={<Dashboard />} />
             <Route path="dashboard" element={<Dashboard />} />
             
-            Luggage Operations
+            {/* Luggage Operations */}
             <Route path="checkin" element={<CheckIn />} />
             <Route path="checkout" element={<CheckOut />} />
             
-            {/* Analytics & Reports */}
-            <Route path="analytics" element={<Analytics />} />
+            {/* Analytics & Reports
+            <Route path="analytics" element={<Analytics />} /> */}
             
             {/* Maintenance */}
-            <Route path="maintenance" element={<Maintenance />} />
+            {/* <Route path="maintenance" element={<Maintenance />} /> */}
             
             {/* Redirect unknown routes to dashboard */}
             <Route path="*" element={<Navigate to="/dashboard" replace />} />

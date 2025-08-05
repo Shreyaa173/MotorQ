@@ -1,1 +1,7 @@
 @import "tailwindcss";
+
+.dashboard-container {
+  min-height: 100vh !important;
+  height: auto !important;
+  padding: 2rem !important;
+}
